@@ -316,8 +316,8 @@ function unitsFromForm(){const w=document.getElementById('fuw');if(!w)return[];c
 function rcData(code){const s=A().find(x=>x.code==code);if(!s)return null;const ci=clsOf(code),c=ci>=0?C()[ci]:null,t=totalOf(code),at=attStat(code),a0=c?effA(code,c):null,z0=c?Cal.parse(os(c,'end')):null;
  const gl=gradeOf(code).filter(g=>{const d=pd(g.date);return d==null||((a0==null||d>=a0)&&(z0==null||d<=z0))}),sk=SKILLS.map(([k,n])=>({n,v:gAvg(gl,k)})).filter(x=>x.v!=null);
  const weak=(t.st?t.st.cats.filter(k=>k.n).sort((x,y)=>y.n-x.n).slice(0,3):[]);
- return{s,c,t,at,sk,weak,ps:c&&planOf(c).length?planStat(c):null,note:(D.notes['studentNoteRC_'+code]||'').trim()}}
-function rcText(code){const d=rcData(code);if(!d)return'';const{s,c,t,at,sk,weak,ps,note}=d;let r='کارنامهٔ ترمی — '+s.first+' '+s.last+'\n';
+ return{s,c,t,at,sk,weak,ps:c&&planOf(c).length?planStat(c):null,note:(D.notes['studentNoteRC_'+code]||'').trim(),weakText:(D.notes['rcWeak_'+code]||'').trim(),praise:(D.notes['rcPraise_'+code]||'').trim()}}
+function rcText(code){const d=rcData(code);if(!d)return'';const{s,c,t,at,sk,weak,ps,note,weakText,praise}=d;let r='کارنامهٔ ترمی — '+s.first+' '+s.last+'\n';
  if(c)r+='کلاس: '+c.name+(c.level?' ('+c.level+')':'')+' • ترم '+stTm(s,c)+(c.start||c.end?' • دوره: '+(c.start||'—')+' تا '+(c.end||'—'):'')+'\n';r+='\n';
  if(at)r+='حضور: '+at.t+' جلسه برگزار شده • غیبت '+at.ab+' • تأخیر '+at.lt+'\n';
  if(ps)r+='پیشرفت برنامهٔ درسی کلاس: '+ps.done+' از '+ps.total+' درس ('+ps.pct+'٪)\n';
@@ -325,11 +325,13 @@ function rcText(code){const d=rcData(code);if(!d)return'';const{s,c,t,at,sk,weak
  if(secs.length){r+='\nنمرهٔ بخش‌ها:\n';secs.forEach(k=>{r+='• '+k.t+' : '+fm1(k.score)+(k.n?' ('+k.n+' بار ثبت شد)':'')+'\n'})}
  r+='\nنمرهٔ کل دوره: '+totLine(t)+'\n';
  if(sk.length){r+='\nآزمون پایان دوره:\n';sk.forEach(x=>{r+='• '+x.n+' : '+x.v+'\n'})}
- if(weak.length){r+='\nنکات برای پیشرفت بیشتر:\n';weak.forEach(k=>{r+='• '+k.t+' ('+k.n+' بار) — مرور و تمرین بیشتر در منزل توصیه می‌شود.\n'})}
+ if(weakText)r+='\nنکات برای پیشرفت بیشتر:\n'+weakText+'\n';else if(weak.length){r+='\nنکات برای پیشرفت بیشتر:\n';weak.forEach(k=>{r+='• '+k.t+' ('+k.n+' بار) — مرور و تمرین بیشتر در منزل توصیه می‌شود.\n'})}if(t.final!=null&&Math.round(t.final*10)/10>=100&&praise)r+='\nپیام تشویقی:\n'+praise+'\n';
  if(note)r+='\nتوضیح معلم: '+note+'\n';return r}
+const weakDefault=weak=>weak&&weak.length?weak.map(k=>'• '+k.t+' ('+k.n+' بار) — مرور و تمرین بیشتر در منزل توصیه می‌شود.').join('\n'):'برای پیشرفت بیشتر، تمرین منظم و مرور مطالب توصیه می‌شود.';
+function rcReady(code,type){const key=type=='praise'?'rcPraiseTemplates':'rcWeakTemplates',label=type=='praise'?'متن‌های تشویقی آماده':'توضیحات آماده برای پیشرفت';const arr=Array.isArray(SS()[key])?SS()[key]:(type=='praise'?['آفرین! عملکرد فوق‌العاده‌ای داشتی و به تلاش و پشتکار تو افتخار می‌کنیم.','تبریک بابت کسب نمره کامل؛ به همین مسیر درخشان ادامه بده!']:['برای پیشرفت بیشتر، تمرین منظم و مرور مطالب توصیه می‌شود.','با تمرین بیشتر و استمرار، می‌توانی به نتایج عالی‌تری دست پیدا کنی.']);modal(label,`<div class="m">هر متن در یک خط. برای افزودن به کادر کارنامه، یک متن را انتخاب کنید.</div><select id="rct" style="width:100%">${arr.map((x,i)=>`<option value="${i}">${E(x)}</option>`).join('')}</select><textarea id="rcnew" rows="6">${E(arr.join('\n'))}</textarea>`,m=>{const texts=uniq(m.querySelector('#rcnew').value.split(/\r?\n/));SS()[key]=texts;save();const pick=m.querySelector('#rct').value;const chosen=arr[Number(pick)];if(chosen){D.notes[(type=='praise'?'rcPraise_':'rcWeak_')+code]=chosen;save();rcDlg(code)}else toast('متن‌های آماده ذخیره شدند')},'ذخیره متن‌ها');}
 function rcPv(){const e=document.getElementById('rcpv');if(e)e.textContent=rcText(RCC)}
 function rcDlg(code){const d=rcData(code);if(!d)return;RCC=code;
- const m=modal('کارنامهٔ ترمی — '+E(d.s.first)+' '+E(d.s.last),`<div class="tb"><button class="p">کارنامهٔ دوره</button><button onclick="rcSw('${E(code)}','m')">📅 کارنامهٔ ماهانه</button></div><label>توضیح معلم برای والدین (اختیاری)<textarea rows="3" oninput="D.notes['studentNoteRC_${E(code)}']=this.value;save();rcPv()">${E(d.note)}</textarea></label><pre id="rcpv" style="white-space:pre-wrap">${E(rcText(code))}</pre><div class="tb">${xbtn('rc',()=>rcText(RCC),'term-card-'+code)}</div>`);
+ const m=modal('کارنامهٔ ترمی — '+E(d.s.first)+' '+E(d.s.last),`<div class="tb"><button class="p">کارنامهٔ دوره</button><button onclick="rcSw('${E(code)}','m')">📅 کارنامهٔ ماهانه</button></div><label>نکات برای پیشرفت بیشتر (قابل ویرایش)<textarea rows="4" oninput="D.notes['rcWeak_${E(code)}']=this.value;save();rcPv()">${E(d.weakText||weakDefault(d.weak))}</textarea><div class="tb"><button type="button" onclick="rcReady('${E(code)}','weak')">📝 توضیحات آماده</button></div></label>${d.t.final!=null&&Math.round(d.t.final*10)/10>=100?`<label>پیام تشویقی (ویژه نمره ۱۰۰)<textarea rows="3" oninput="D.notes['rcPraise_${E(code)}']=this.value;save();rcPv()">${E(d.praise)}</textarea><div class="tb"><button type="button" onclick="rcReady('${E(code)}','praise')">🌟 توضیحات تشویقی آماده</button></div></label>`:''}<label>توضیح معلم برای والدین (اختیاری)<textarea rows="3" oninput="D.notes['studentNoteRC_${E(code)}']=this.value;save();rcPv()">${E(d.note)}</textarea></label><pre id="rcpv" style="white-space:pre-wrap">${E(rcText(code))}</pre><div class="tb">${xbtn('rc',()=>rcText(RCC),'term-card-'+code)}</div>`);
  m.querySelector('.bt').insertAdjacentHTML('afterbegin','<button class="p" id="rcp">🖨 چاپ / PDF</button><button id="rcm">💬 ارسال به والدین</button>');
  m.querySelector('#rcp').onclick=()=>rcPrint(code);m.querySelector('#rcm').onclick=()=>parentSend(code,rcText(code))}
 function rcPrint(code){const d=rcData(code);if(!d)return;const{s,c,t,at,sk,weak,ps,note}=d;const old=document.getElementById('cert');if(old)old.remove();
@@ -340,7 +342,7 @@ function rcPrint(code){const d=rcData(code);if(!d)return;const{s,c,t,at,sk,weak,
  ${rows?`<div class="sec">نمرهٔ بخش‌ها</div><table><tr><th style="text-align:right">بخش</th><th>دفعات ثبت</th><th>نمره</th></tr>${rows}</table>`:''}
  <div class="sec">نمرهٔ کل دوره</div><div class="grid"><div class="big"><span>${t.final==null?'—':fm1(t.final)}</span></div></div>
  ${sk.length?`<div class="sec">آزمون پایان دوره</div><table>${sk.map(x=>`<tr><td style="text-align:right">${E(x.n)}</td><td>${x.v}</td></tr>`).join('')}</table>`:''}
- ${weak.length?`<div class="tx"><b>نکات برای پیشرفت بیشتر:</b>\n${weak.map(k=>'• '+E(k.t)+' ('+k.n+' بار) — مرور و تمرین بیشتر در منزل توصیه می‌شود.').join('\n')}</div>`:''}
+ ${d.weakText||weak.length?`<div class="tx"><b>نکات برای پیشرفت بیشتر:</b>\n${E(d.weakText||weakDefault(weak))}</div>`:''}${t.final!=null&&Math.round(t.final*10)/10>=100&&d.praise?`<div class="tx"><b>پیام تشویقی:</b>\n${E(d.praise)}</div>`:''}
  ${note?`<div class="tx"><b>توضیح معلم:</b> ${E(note)}</div>`:''}
  <div class="foot"><div class="sg">امضای مدیر آموزشگاه</div><div class="sg">مهر آموزشگاه</div></div></div>`;
  document.body.appendChild(el);const st=document.createElement('style');st.id='rcpage';st.textContent='@media print{@page{size:A4 portrait;margin:0}}';document.head.appendChild(st);
@@ -369,7 +371,7 @@ function rcmText(code,y,m){const d=monthData(code,y,m);if(!d)return'';const{s,c,
  const secs=cats.filter(k=>Math.round(k.score*10)/10<100);
  if(secs.length){r+='\nنمرهٔ بخش‌ها:\n';secs.forEach(k=>{r+='• '+k.t+' : '+fm1(k.score)+(k.n?' ('+k.n+(k.abs?' بار':' بار ثبت شد')+')':'')+'\n'})}
  r+='\nنمرهٔ این ماه: '+(total==null?'—':fm1(total))+'\n';
- if(weak.length){r+='\nنکات برای پیشرفت بیشتر:\n';weak.forEach(k=>{r+='• '+k.t+' ('+k.n+' بار) — مرور و تمرین بیشتر در منزل توصیه می‌شود.\n'})}
+ if(weakText)r+='\nنکات برای پیشرفت بیشتر:\n'+weakText+'\n';else if(weak.length){r+='\nنکات برای پیشرفت بیشتر:\n';weak.forEach(k=>{r+='• '+k.t+' ('+k.n+' بار) — مرور و تمرین بیشتر در منزل توصیه می‌شود.\n'})}if(t.final!=null&&Math.round(t.final*10)/10>=100&&praise)r+='\nپیام تشویقی:\n'+praise+'\n';
  if(note)r+='\nتوضیح معلم: '+note+'\n';return r}
 function rcmPrint(code,y,m){const d=monthData(code,y,m);if(!d)return;const{s,c,at,cats,total,has,weak,note}=d;const old=document.getElementById('cert');if(old)old.remove();
  const rows=cats.filter(k=>Math.round(k.score*10)/10<100).map(k=>`<tr><td style="text-align:right">${E(k.t)}</td><td>${k.n||'—'}</td><td>${fm1(k.score)}</td></tr>`).join('');
@@ -378,7 +380,7 @@ function rcmPrint(code,y,m){const d=monthData(code,y,m);if(!d)return;const{s,c,a
  ${has?`${at?`<div class="sec">حضور</div><div class="grid"><div><b>جلسات برگزار شده</b><span>${at.t}</span></div><div><b>غیبت</b><span>${at.ab}</span></div><div><b>تأخیر</b><span>${at.lt}</span></div></div>`:''}
  ${rows?`<div class="sec">نمرهٔ بخش‌ها</div><table><tr><th style="text-align:right">بخش</th><th>دفعات</th><th>نمره</th></tr>${rows}</table>`:''}
  <div class="sec">نمرهٔ این ماه</div><div class="grid"><div class="big"><span>${total==null?'—':fm1(total)}</span></div></div>
- ${weak.length?`<div class="tx"><b>نکات برای پیشرفت بیشتر:</b>\n${weak.map(k=>'• '+E(k.t)+' ('+k.n+' بار) — مرور و تمرین بیشتر در منزل توصیه می‌شود.').join('\n')}</div>`:''}`:`<div class="tx">در این ماه گزارشی برای این زبان‌آموز ثبت نشده است.</div>`}
+ ${d.weakText||weak.length?`<div class="tx"><b>نکات برای پیشرفت بیشتر:</b>\n${E(d.weakText||weakDefault(weak))}</div>`:''}${t.final!=null&&Math.round(t.final*10)/10>=100&&d.praise?`<div class="tx"><b>پیام تشویقی:</b>\n${E(d.praise)}</div>`:''}`:`<div class="tx">در این ماه گزارشی برای این زبان‌آموز ثبت نشده است.</div>`}
  ${note?`<div class="tx"><b>توضیح معلم:</b> ${E(note)}</div>`:''}
  <div class="foot"><div class="sg">امضای مدیر آموزشگاه</div><div class="sg">مهر آموزشگاه</div></div></div>`;
  document.body.appendChild(el);const st=document.createElement('style');st.id='rcpage';st.textContent='@media print{@page{size:A4 portrait;margin:0}}';document.head.appendChild(st);
