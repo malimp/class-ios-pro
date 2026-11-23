@@ -1,5 +1,5 @@
 // Service worker: makes the app open offline. Bump VERSION on every release so phones pick up the update.
-const VERSION = 'class-v1.33.14';
+const VERSION = 'class-v1.33.17';
 const CORE = ['./', './index.html', './manifest.webmanifest', './logo.jpg', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-512-maskable.png'];
 const XURL = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
 
