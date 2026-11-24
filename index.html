@@ -427,8 +427,40 @@ async function autoExportClassCards(){
  return `<section class="print-page"><div class="page"><div class="header"><img class="logo" src="${logoSrc}"><div class="brand"><h1>${r.type==='periodic'?'کارنامه دوره‌ای':'کارنامه ماهانه'}</h1><small>Moradi English Class</small></div><img class="logo" src="${logoSrc}"></div><div class="meta"><div class="name">${esc(r.studentName)}</div><span class="chip">کلاس: ${esc(r.className)}</span><span class="chip">بازه: ${esc(label)}</span><span class="chip">تاریخ صدور: ${esc(todayJ())}</span><span class="chip">نسخه: ${r.version}</span></div>${score!==''?`<div class="score"><small>نمرهٔ کل</small><br><strong>${esc(score)}</strong></div>`:''}<div class="content">${esc(commentText||'محتوایی ثبت نشده است.')}</div><div class="foot"><span>امضای مدیر آموزشگاه<i></i></span><span>مهر آموزشگاه<i></i></span></div><div class="hint">این کارنامه بر اساس اطلاعات ثبت‌شده در برنامه تهیه شده و در صورت نیاز توسط معلم بازبینی می‌شود.</div></div></section>`}).join('');
  const doc=`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>کارنامه‌های ${esc(cls)}</title><style>${type==='monthly'?monthlyCss:''}
  *{box-sizing:border-box}html,body{margin:0;width:100%;font-family:Tahoma,Arial,sans-serif;direction:rtl;color:#18343c;background:#fff}.print-page{width:210mm;height:297mm;min-height:297mm;display:flex;align-items:center;justify-content:center;margin:0 auto;page-break-after:always;break-after:page;overflow:visible}.batch-cert{width:210mm;height:297mm;display:flex;align-items:center;justify-content:center;margin:0;padding:0}.batch-cert{position:static!important;inset:auto!important;width:210mm!important;height:297mm!important;display:flex;align-items:center;justify-content:center}.batch-cert .rmonth{margin:0!important;min-height:0!important;max-height:275mm!important;page-break-inside:avoid;break-inside:avoid} *{box-sizing:border-box}html,body{margin:0;width:100%;font-family:Tahoma,Arial,sans-serif;direction:rtl;color:#18343c;background:#fff}.print-page{width:210mm;height:297mm;display:flex;align-items:center;justify-content:center;margin:0 auto;page-break-after:always}.page{width:190mm;max-width:190mm;border:2px solid #137f82;border-radius:16px;padding:18mm 14mm}.header{display:flex;align-items:center;gap:14px;border-bottom:2px solid #137f82;padding-bottom:14px}.logo{width:68px;height:68px;object-fit:contain}.brand{text-align:center;flex:1}.brand h1{margin:0 0 5px;font-size:22px;color:#126f76}.brand small{color:#52727a}.meta{margin:16px 0;padding:12px;border-radius:10px;background:#f1f7f7;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;text-align:center}.name{font-size:19px;font-weight:bold;width:100%;text-align:center}.chip{border:1px solid #b7d3d3;border-radius:18px;padding:5px 10px;font-size:13px}.score{margin:14px auto;padding:12px;border:2px solid #137f82;border-radius:12px;text-align:center;max-width:220px}.score strong{font-size:28px;color:#126f76}.content{white-space:pre-wrap;line-height:2.1;font-size:14px;padding:10px 2px;text-align:center}.foot{display:flex;justify-content:space-between;margin-top:38px;padding-top:20px}.foot span{min-width:130px;text-align:center}.foot i{display:block;height:35px}.hint{font-size:11px;color:#668087;margin-top:12px;text-align:center}@page{size:A4 portrait;margin:0}@media print{html,body,body *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}.print-page{width:210mm!important;height:297mm!important;min-height:297mm!important;margin:0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:visible!important;page-break-after:always!important;break-after:page!important}.print-page:last-child{page-break-after:auto!important;break-after:auto!important}.batch-cert{width:210mm!important;height:297mm!important;min-height:297mm!important;display:flex!important;align-items:center!important;justify-content:center!important;position:static!important;overflow:visible!important}.batch-cert .rmonth{max-width:190mm!important;width:190mm!important;max-height:none!important;min-height:0!important;margin:0!important;break-inside:avoid!important;page-break-inside:avoid!important}.page{max-height:none!important;overflow:visible!important;break-inside:avoid!important;page-break-inside:avoid!important}table{width:100%!important;border-collapse:collapse!important}thead{display:table-header-group!important}tr,td,th{break-inside:avoid!important;page-break-inside:avoid!important}}</style></head><body>${pages}<script>window.onload=()=>setTimeout(()=>window.print(),500)<\/script></body></html>`;
- try{if(window.showSaveFilePicker){const h=await window.showSaveFilePicker({suggestedName:`کارنامه-${cls}-${type}.html`,types:[{description:'HTML قابل چاپ',accept:{'text/html':['.html']}}]});const w=await h.createWritable();await w.write(doc);await w.close();toast('فایل مجموعه کارنامه‌ها ذخیره شد')}else{const blob=new Blob([doc],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`کارنامه-${cls}-${type}.html`;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);toast('فایل مجموعه کارنامه‌ها دانلود شد؛ برای PDF چاپ کنید')}}
- catch(e){if(e.name!=='AbortError')toast('ذخیره خروجی انجام نشد')}
+ const fileName=`سوابق-یکجای-${String(cls||'کلاس').replace(/[\\/:*?"<>|]/g,'-')}-${type}.html`;
+ const blob=new Blob([doc],{type:'text/html;charset=utf-8'});
+ // Prefer the native Save dialog, but fall back when the installed desktop shell rejects it.
+ if(typeof window.showSaveFilePicker==='function'){
+   try{
+     const h=await window.showSaveFilePicker({suggestedName:fileName,types:[{description:'فایل HTML قابل چاپ',accept:{'text/html':['.html']}}]});
+     const w=await h.createWritable();
+     await w.write(blob);
+     await w.close();
+     toast('فایل مجموعه سوابق با موفقیت ذخیره شد');
+     return;
+   }catch(e){
+     if(e&&e.name==='AbortError')return;
+     console.warn('Save picker failed; using download fallback:',e);
+   }
+ }
+ try{
+   if(navigator.msSaveOrOpenBlob){navigator.msSaveOrOpenBlob(blob,fileName);toast('فایل مجموعه سوابق آماده ذخیره است');return;}
+   const url=URL.createObjectURL(blob),a=document.createElement('a');
+   a.href=url;a.download=fileName;a.style.display='none';
+   (document.body||document.documentElement).appendChild(a);
+   a.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:window}));
+   a.remove();
+   setTimeout(()=>URL.revokeObjectURL(url),60000);
+   toast('دانلود فایل مجموعه سوابق آغاز شد؛ پوشه Downloads را بررسی کنید');
+ }catch(e){
+   console.error('Class history export failed:',e);
+   try{
+     const url=URL.createObjectURL(blob),w=window.open(url,'_blank');
+     setTimeout(()=>URL.revokeObjectURL(url),60000);
+     if(w){toast('فایل در پنجره جدید باز شد؛ از آنجا ذخیره یا چاپ کنید');return;}
+   }catch(_){}
+   toast('ساخت فایل انجام شد اما مرورگر ذخیره آن را مسدود کرد؛ مجوز دانلود برنامه را بررسی کنید');
+ }
 }
 function vAutoCards(){return autoMonthlyPage()}
 
@@ -583,7 +615,7 @@ function rcPrint(code){const d=rcData(code);if(!d)return;const{s,c,t,at,sk,weak,
  document.body.appendChild(el);const st=document.createElement('style');st.id='rcpage';st.textContent='@media print{@page{size:A4 portrait;margin:0}}';document.head.appendChild(st);
  const done=()=>{try{el.remove();st.remove()}catch(e){}window.removeEventListener('afterprint',done)};window.addEventListener('afterprint',done);setTimeout(done,60000);
  try{window.print()}catch(e){toast('چاپ در این مرورگر در دسترس نیست')}}
-// ===== کارنامهٔ ماهانه: نمره بر اساس موارد آموزشی؛ غیبت هیچ اثر نمره‌ای ندارد =====
+// ===== کارنامهٔ ماهانه: نمره بر اساس موارد آموزشی و ضریب گزارش‌های کلاس به حضور واقعی =====
 const MSESS=8;let RM=null;
 const rmNow=()=>{const j=Cal.jal(today());return{y:j[0],m:j[1]}};
 const rmRange=(y,m)=>{const p2=n=>String(n).padStart(2,'0'),s=Cal.parse(y+'/'+p2(m)+'/01'),n=m==12?Cal.parse((y+1)+'/01/01'):Cal.parse(y+'/'+p2(m+1)+'/01');return{s,e:n-1}};
@@ -595,12 +627,13 @@ function monthData(code,y,m){const si=A().findIndex(x=>x.code==code);if(si<0)ret
  R().forEach((r,i)=>{const[d,k]=dayOf(r);if(k==2)return;if(d<a||d>z)return;ix.push(i)});
  const x=stu(si,{ix,fb:0,un:0},H),n=opts.map(()=>0);
  x.items.forEach(it=>{const L=String(it.t||'').split(/\r?\n/).map(norm);opts.forEach((tt,j)=>{if(L.includes(norm(tt)))n[j]++})});
- const at=attStatR(code,H,a,z),cats=opts.map((tt,j)=>({t:tt,n:n[j],score:Math.max(0,100-n[j]*100/MSESS)}));
- const has=at?at.t>0:x.items.length>0,total=has&&cats.length?Math.round(cats.reduce((u,v)=>u+v.score,0)/cats.length*10)/10:null;
+ const at=attStatR(code,H,a,z),reportCount=at?at.t:0,presentCount=at?Math.max(0,at.t-at.ab):0;
+ const cats=opts.map((tt,j)=>({t:tt,n:n[j],score:presentCount>0?Math.max(0,100-(n[j]*100/MSESS)*(reportCount*2/presentCount)):0}));
+ const has=at?at.t>0:x.items.length>0,total=cats.length?Math.round(cats.reduce((u,v)=>u+v.score,0)/cats.length*10)/10:0;
  const checkedItems=(x.items||[]).filter(it=>it&&it.t&&String(it.t).trim()&&it.t!==IMPL);return{s,c,y,m,rg,at,cats,total,has,items:checkedItems,weak:cats.filter(k=>k.n&&!k.abs).sort((p,q)=>q.n-p.n).slice(0,3),note:(D.notes['studentNoteRM_'+code]||'').trim()}}
 function rcmText(code,y,m){const d=monthData(code,y,m);if(!d)return'';const{s,c,at,cats,total,has,weak,note}=d;let r='کارنامهٔ ماهانه — '+s.first+' '+s.last+'\n';
  r+='ماه: '+rmName(y,m)+(c?' • کلاس: '+c.name+(c.level?' ('+c.level+')':'')+' • ترم '+stTm(s,c):'')+'\n\n';
- if(!has){r+='در این ماه گزارشی برای این زبان‌آموز ثبت نشده است.\n';return r}
+ if(!has){r+='در این ماه گزارشی برای این زبان‌آموز ثبت نشده است.\n';r+='نمرهٔ این ماه: '+(total==null?'—':fm1(total))+'\n';if(note)r+='\nتوضیح معلم: '+note+'\n';return r}
  if(at)r+='حضور: '+at.t+' جلسه برگزار شده • غیبت '+at.ab+' • تأخیر '+at.lt+'\n';
  const secs=cats.filter(k=>Number(k.score)<100&&Number(k.n||0)>0&&!k.abs);
  if(secs.length){
@@ -629,7 +662,7 @@ function rcmPv(){const e=document.getElementById('rcpv');if(e&&RM)e.textContent=
 function rcSw(code,mode){document.querySelectorAll('.ov').forEach(x=>x.remove());mode=='m'?rcmDlg(code):rcDlg(code)}
 function rcmDlg(code){const s=A().find(x=>x.code==code);if(!s)return;RCC=code;if(!RM)RM=rmNow();const cy=rmNow().y,ys=[cy-1,cy,cy+1];if(!ys.includes(RM.y))ys.push(RM.y);ys.sort();
  const note=(D.notes['studentNoteRM_'+code]||'').trim();
- const m=modal('کارنامهٔ ماهانه — '+E(s.first)+' '+E(s.last),`<div class="tb"><button onclick="rcSw('${E(code)}','t')">کارنامهٔ دوره</button><button class="p">📅 کارنامهٔ ماهانه</button></div><div class="r" style="gap:8px;align-items:flex-end"><label style="flex:1">ماه<select id="rmm">${MONTHS.map((n,i)=>`<option value="${i+1}"${i+1==RM.m?' selected':''}>${n}</option>`).join('')}</select></label><label style="flex:1">سال<select id="rmy">${ys.map(y=>`<option value="${y}"${y==RM.y?' selected':''}>${y}</option>`).join('')}</select></label></div><div class="m">در هر ماه ۸ جلسه فرض می‌شود؛ نمره فقط بر اساس موارد آموزشی ثبت‌شده محاسبه می‌شود و غیبت هیچ تأثیری بر نمره ندارد.</div><label>توضیح معلم برای والدین (اختیاری)<textarea rows="3" oninput="D.notes['studentNoteRM_${E(code)}']=this.value;save();rcmPv()">${E(note)}</textarea></label><pre id="rcpv" style="white-space:pre-wrap">${E(rcmText(code,RM.y,RM.m))}</pre><div class="tb">${xbtn('rcm',()=>rcmText(RCC,RM.y,RM.m),'monthly-card-'+code)}</div>`);
+ const m=modal('کارنامهٔ ماهانه — '+E(s.first)+' '+E(s.last),`<div class="tb"><button onclick="rcSw('${E(code)}','t')">کارنامهٔ دوره</button><button class="p">📅 کارنامهٔ ماهانه</button></div><div class="r" style="gap:8px;align-items:flex-end"><label style="flex:1">ماه<select id="rmm">${MONTHS.map((n,i)=>`<option value="${i+1}"${i+1==RM.m?' selected':''}>${n}</option>`).join('')}</select></label><label style="flex:1">سال<select id="rmy">${ys.map(y=>`<option value="${y}"${y==RM.y?' selected':''}>${y}</option>`).join('')}</select></label></div><div class="m">نمره هر بخش بر اساس دفعات ثبت مورد آموزشی، تعداد گزارش‌های کلاس در ماه و تعداد جلسات حضور واقعی زبان‌آموز محاسبه می‌شود؛ تأخیر حضور محسوب می‌شود.</div><label>توضیح معلم برای والدین (اختیاری)<textarea rows="3" oninput="D.notes['studentNoteRM_${E(code)}']=this.value;save();rcmPv()">${E(note)}</textarea></label><pre id="rcpv" style="white-space:pre-wrap">${E(rcmText(code,RM.y,RM.m))}</pre><div class="tb">${xbtn('rcm',()=>rcmText(RCC,RM.y,RM.m),'monthly-card-'+code)}</div>`);
  m.querySelector('.bt').insertAdjacentHTML('afterbegin','<button class="p" id="rcp">🖨 چاپ / PDF</button><button id="rcm">💬 ارسال به والدین</button>');
  m.querySelector('#rmm').onchange=e=>{RM.m=+e.target.value;rcmPv()};m.querySelector('#rmy').onchange=e=>{RM.y=+e.target.value;rcmPv()};
 
