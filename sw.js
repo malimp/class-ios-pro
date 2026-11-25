@@ -1,4 +1,4 @@
-const VERSION='v1.33.47';
+const VERSION='v1.33.49';
 const CACHE='class-shell-'+VERSION;
 const ASSETS=[
  './index.html',
@@ -8,6 +8,9 @@ const ASSETS=[
  './icons/icon-192.png',
  './icons/icon-512.png',
  './icons/icon-512-maskable.png',
+ './fonts/vazirmatn-arabic.woff2',
+ './fonts/vazirmatn-latin-ext.woff2',
+ './fonts/vazirmatn-latin.woff2',
  './xlsx.full.min.js'
 ];
 self.addEventListener('install',event=>{
